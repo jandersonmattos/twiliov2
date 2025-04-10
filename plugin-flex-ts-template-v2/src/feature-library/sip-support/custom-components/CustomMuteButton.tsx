@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 
 import { getConferenceSidFromTask, getLocalParticipantForTask } from '../helpers/CallControlHelper';
 import ProgrammableVoiceService from '../../../utils/serverless/ProgrammableVoice/ProgrammableVoiceService';
-import logger from '../../../utils/logger';
 
 export interface OwnProps {
   task?: ITask;
@@ -16,9 +15,7 @@ const CustomMuteButton = (props: OwnProps) => {
 
   useEffect(() => {
     if (!props.task?.conference) return;
-    const workerParticipant = props.task.conference.participants.find(
-      (p) => p.isCurrentWorker && p.status === 'joined',
-    );
+    const workerParticipant = props.task.conference.participants.find((p) => p.isCurrentWorker);
 
     if (workerParticipant) {
       setMuted(workerParticipant.muted);
@@ -29,19 +26,19 @@ const CustomMuteButton = (props: OwnProps) => {
 
   const handleClick = async () => {
     if (!props.task) {
-      logger.error(`[sip-support] No task active`, props.task);
+      console.error(`No task active`, props.task);
       return;
     }
 
     const conferenceSid = getConferenceSidFromTask(props.task);
     if (!conferenceSid) {
-      logger.error(`[sip-support] No Conference SID`, props.task);
+      console.error(`No Conference SID`, props.task);
       return;
     }
 
     const participantCallSid = getLocalParticipantForTask(props.task);
     if (!participantCallSid) {
-      logger.error(`[sip-support] No Participant`, props.task);
+      console.error(`No Participant`, props.task);
       return;
     }
 

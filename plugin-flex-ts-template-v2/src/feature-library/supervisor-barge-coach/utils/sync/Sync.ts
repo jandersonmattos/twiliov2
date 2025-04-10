@@ -1,5 +1,4 @@
 import client from '../../../../utils/sdk-clients/sync/SyncClient';
-import logger from '../../../../utils/logger';
 
 class SyncDocClass {
   // Getting the Sync Document
@@ -11,7 +10,7 @@ class SyncDocClass {
           resolve(doc);
         })
         .catch((error: any) => {
-          logger.error('[supervisor-barge-coach] Sync Util: getSyncDoc: Error calling this function', error);
+          console.error('Sync Util: getSyncDoc: Error calling this function', error);
         });
     });
   };
@@ -47,15 +46,12 @@ class SyncDocClass {
           );
           if (removeAgentAssistanceIndex > -1) {
             agentAssistanceArray.splice(removeAgentAssistanceIndex, 1);
-            this.updateSyncDoc(docToUpdate, agentAssistanceArray);
           }
+          this.updateSyncDoc(docToUpdate, agentAssistanceArray);
         }
       })
       .catch((error: any) => {
-        logger.error(
-          '[supervisor-barge-coach] Sync Util: initSyncDocAgentAssistance: Error calling this function',
-          error,
-        );
+        console.error('Sync Util: initSyncDocAgentAssistance: Error calling this function', error);
       });
   };
 
@@ -76,32 +72,30 @@ class SyncDocClass {
         if (doc.data.supervisors) {
           supervisorsArray = [...doc.data.supervisors];
         }
-        if (updateStatus === 'remove') {
+        if (updateStatus === 'add') {
+          supervisorsArray.push({
+            conference: conferenceSID,
+            supervisorSID,
+            supervisor: supervisorFN,
+            status: supervisorStatus,
+          });
+          this.updateSyncDoc(docToUpdate, supervisorsArray);
+        } else if (updateStatus === 'update') {
+          const updateSupervisorIndex = supervisorsArray.findIndex((s) => s.supervisorSID === supervisorSID);
+          if (updateSupervisorIndex > -1) {
+            supervisorsArray[updateSupervisorIndex].status = supervisorStatus;
+          }
+          this.updateSyncDoc(docToUpdate, supervisorsArray);
+        } else if (updateStatus === 'remove') {
           const removeSupervisorIndex = supervisorsArray.findIndex((s) => s.supervisorSID === supervisorSID);
           if (removeSupervisorIndex > -1) {
             supervisorsArray.splice(removeSupervisorIndex, 1);
-            this.updateSyncDoc(docToUpdate, supervisorsArray);
-          }
-        } else {
-          const updateSupervisorIndex = supervisorsArray.findIndex((s) => s.supervisorSID === supervisorSID);
-          if (updateSupervisorIndex > -1) {
-            supervisorsArray[updateSupervisorIndex] = {
-              ...supervisorsArray[updateSupervisorIndex],
-              status: supervisorStatus,
-            };
-          } else {
-            supervisorsArray.push({
-              conference: conferenceSID,
-              supervisorSID,
-              supervisor: supervisorFN,
-              status: supervisorStatus,
-            });
           }
           this.updateSyncDoc(docToUpdate, supervisorsArray);
         }
       })
       .catch((error: any) => {
-        logger.error('[supervisor-barge-coach] Sync Util: initSyncDocSupervisors: Error calling this function', error);
+        console.error('Sync Util: initSyncDocSupervisors: Error calling this function', error);
       });
   };
 
@@ -127,7 +121,7 @@ class SyncDocClass {
         });
       })
       .catch((error: any) => {
-        logger.error('[supervisor-barge-coach] Sync Util: updateSyncDoc: Error calling this function', error);
+        console.error('Sync Util: updateSyncDoc: Error calling this function', error);
       });
   };
 
@@ -141,7 +135,7 @@ class SyncDocClass {
         });
       })
       .catch((error: any) => {
-        logger.error('[supervisor-barge-coach] Sync Util: clearSyncDoc: Error calling this function', error);
+        console.error('Sync Util: clearSyncDoc: Error calling this function', error);
       });
   };
 }

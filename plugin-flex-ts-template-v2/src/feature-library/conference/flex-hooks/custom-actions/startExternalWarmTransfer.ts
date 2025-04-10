@@ -3,7 +3,6 @@ import { Actions, ITask, Manager, Notifications, TaskHelper } from '@twilio/flex
 import ProgrammableVoiceService from '../../../../utils/serverless/ProgrammableVoice/ProgrammableVoiceService';
 import { addConnectingParticipant } from '../states/ConferenceSlice';
 import { ConferenceNotification } from '../notifications/Conference';
-import logger from '../../../../utils/logger';
 
 export const registerStartExternalWarmTransfer = async () => {
   Actions.registerAction(
@@ -16,7 +15,7 @@ export const registerStartExternalWarmTransfer = async () => {
       }
 
       if (!task) {
-        logger.error('[conference] Cannot start warm transfer without either a task or a valid task sid');
+        console.error('Cannot start warm transfer without either a task or a valid task sid');
         return;
       }
 
@@ -27,7 +26,7 @@ export const registerStartExternalWarmTransfer = async () => {
       }
 
       // Adding entered number to the conference
-      logger.info(`[conference] Adding ${phoneNumber} to conference`);
+      console.log(`Adding ${phoneNumber} to conference`);
       let participantCallSid;
       try {
         participantCallSid = await ProgrammableVoiceService.addParticipant(mainConferenceSid, callerId, phoneNumber);
@@ -44,7 +43,7 @@ export const registerStartExternalWarmTransfer = async () => {
           Notifications.showNotification(ConferenceNotification.ExternalWarmTransferInvalidPhoneNumber, {
             message: error.message,
           });
-        logger.error('[conference] Error adding conference participant:', error);
+        console.error('Error adding conference participant:', error);
       }
     },
   );

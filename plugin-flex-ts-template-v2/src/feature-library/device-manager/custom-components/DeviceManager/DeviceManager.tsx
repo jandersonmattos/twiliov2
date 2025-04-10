@@ -9,7 +9,7 @@ import { VolumeOnIcon } from '@twilio-paste/icons/esm/VolumeOnIcon';
 import { AgentIcon } from '@twilio-paste/icons/esm/AgentIcon';
 
 import { isInputSelectEnabled } from '../../config';
-import { MultiCallDevices } from '../../../multi-call/helpers/MultiCallHelper';
+import { SecondDevice } from '../../../multi-call/helpers/MultiCallHelper';
 import { isFeatureEnabled as isMultiCallEnabled } from '../../../multi-call/config';
 import { StringTemplates } from '../../flex-hooks/strings';
 
@@ -47,11 +47,9 @@ const DeviceManager: React.FunctionComponent = () => {
 
       setSelectedDevice(selectedDevice, voiceClient);
 
-      // set device options for multi-call feature if enabled
-      if (isMultiCallEnabled()) {
-        MultiCallDevices.forEach((device) => {
-          setSelectedDevice(selectedDevice, device);
-        });
+      // set SecondDevice options if multi-call feature is enabled
+      if (isMultiCallEnabled() && SecondDevice) {
+        setSelectedDevice(selectedDevice, SecondDevice);
       }
 
       menu.hide();

@@ -10,7 +10,6 @@ import {
 import { EncodedParams } from '../../../types/serverless';
 import ApiService from '../../../utils/serverless/ApiService';
 import { isFeatureEnabled, getServerlessDomain } from '../config';
-import logger from '../../../utils/logger';
 
 class ScheduleManagerService extends ApiService {
   readonly scheduleManagerServerlessDomain: string;
@@ -22,15 +21,15 @@ class ScheduleManagerService extends ApiService {
     this.scheduleManagerServerlessDomain = getServerlessDomain();
 
     if (isFeatureEnabled() && !this.scheduleManagerServerlessDomain) {
-      logger.error('[schedule-manager] serverless_domain is not set in flex config');
+      console.error('schedule_manager serverless_domain is not set in flex config');
     }
   }
 
   async list(): Promise<ScheduleManagerConfig | null> {
     try {
       return await this.#list();
-    } catch (error: any) {
-      logger.error('[schedule-manager] Unable to list config', error);
+    } catch (error) {
+      console.log('Unable to list config', error);
       return null;
     }
   }
@@ -39,7 +38,7 @@ class ScheduleManagerService extends ApiService {
     try {
       return await this.#update(config);
     } catch (error: any) {
-      logger.error('[schedule-manager] Unable to update config', error);
+      console.log('Unable to update config', error);
 
       if (error.status === 409) {
         return {
@@ -58,8 +57,8 @@ class ScheduleManagerService extends ApiService {
   async updateStatus(buildSid: string): Promise<UpdateConfigStatusResponse> {
     try {
       return await this.#updateStatus({ buildSid });
-    } catch (error: any) {
-      logger.error('[schedule-manager] Unable to get config build status', error);
+    } catch (error) {
+      console.log('Unable to get config build status', error);
       return {
         success: false,
         buildStatus: 'error',
@@ -70,8 +69,8 @@ class ScheduleManagerService extends ApiService {
   async publish(buildSid: string): Promise<PublishConfigResponse> {
     try {
       return await this.#publish({ buildSid });
-    } catch (error: any) {
-      logger.error('[schedule-manager] Unable to publish config', error);
+    } catch (error) {
+      console.log('Unable to publish config', error);
       return {
         success: false,
         deploymentSid: 'error',

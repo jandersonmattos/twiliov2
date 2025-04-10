@@ -2,7 +2,6 @@ import * as Flex from '@twilio/flex-ui';
 
 import { isColdTransferEnabled, isMultiParticipantEnabled } from '../../config';
 import { FlexActionEvent, FlexAction } from '../../../../types/feature-loader';
-import { getFlexFeatureFlag } from '../../../../utils/configuration';
 
 export const actionEvent = FlexActionEvent.before;
 export const actionName = FlexAction.ShowDirectory;
@@ -20,7 +19,8 @@ export const actionHook = function handleConvTransferShowDirectory(flex: typeof 
     if (isCbm) {
       // if cold xfer is disabled, remove button 2 unless flex warm xfer is disabled, then remove button 1 instead.
       // if multi party is disabled, remove button 1 unless flex warm xfer is disabled
-      const isFlexWarmXferEnabled = getFlexFeatureFlag('flex-warm-transfers');
+      const isFlexWarmXferEnabled =
+        manager.store.getState().flex.featureFlags.features['flex-warm-transfers']?.enabled === true;
 
       if (isFlexWarmXferEnabled) {
         if (!isMultiParticipantEnabled()) {

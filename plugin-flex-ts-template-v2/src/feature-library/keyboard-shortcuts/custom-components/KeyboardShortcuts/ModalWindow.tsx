@@ -21,7 +21,7 @@ import {
   getAllActions,
   getAllShortcuts,
   getCurrentShortcuts,
-  remapShortcut,
+  remapKeyboardShortcutUtil,
 } from '../../utils/KeyboardShortcutsUtil';
 import { writeToLocalStorage } from '../../utils/LocalStorageUtil';
 
@@ -64,7 +64,7 @@ const ModalWindow = ({
     const shortcutObject = {
       action: getAllActions()[actionFunction],
       name: selectedActionName,
-      throttle: Number(isThrottleEnabled ? throttleValue : selectedThrottle),
+      throttle: Number(throttleValue),
     };
 
     setShortcutErrorMessage('');
@@ -78,7 +78,7 @@ const ModalWindow = ({
       parsedShortcut = selectedShortcutKey;
     }
 
-    remapShortcut(selectedShortcutKey, parsedShortcut, shortcutObject);
+    remapKeyboardShortcutUtil(selectedShortcutKey, parsedShortcut, shortcutObject);
 
     const updatedShortcuts = shortcuts.map((item) => item.key);
     shortcuts[updatedShortcuts.indexOf(selectedShortcutKey)].key =

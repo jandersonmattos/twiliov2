@@ -4,11 +4,10 @@ import TaskService from '../../../utils/serverless/TaskRouter/TaskRouterService'
 import { removeInvitedParticipant } from '../helpers/inviteTracker';
 import { NotificationIds } from '../flex-hooks/notifications/TransferResult';
 import { CancelChatParticipantInviteActionPayload } from '../types/ActionPayloads';
-import logger from '../../../utils/logger';
 
 const handleCancelChatParticipantInvite = async (payload: CancelChatParticipantInviteActionPayload) => {
   const { conversation, invitesTaskSid } = payload;
-  logger.debug(`[conversation-transfer] handleCancelChatParticipantInvite ${invitesTaskSid}`, conversation);
+  console.log('handleCancelChatParticipantInvite', conversation, invitesTaskSid);
 
   try {
     await TaskService.updateTaskAssignmentStatus(invitesTaskSid, 'canceled');
@@ -18,8 +17,8 @@ const handleCancelChatParticipantInvite = async (payload: CancelChatParticipantI
     }
 
     Notifications.showNotification(NotificationIds.ChatCancelParticipantInviteSuccess);
-  } catch (error: any) {
-    logger.error('[conversation-transfer] handleCancelChatParticipantInvite API request failed', error);
+  } catch (error) {
+    console.error('handleCancelChatParticipantInvite API request failed', error);
     Notifications.showNotification(NotificationIds.ChatCancelParticipantInviteFailed);
   }
 };

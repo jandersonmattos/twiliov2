@@ -1,7 +1,6 @@
 import ApiService from '../../../../utils/serverless/ApiService';
 import { EncodedParams } from '../../../../types/serverless';
 import { FetchedReservation } from '../../../../types/serverless/twilio-api';
-import logger from '../../../../utils/logger';
 
 interface UpdateReservationResponse {
   success: boolean;
@@ -11,27 +10,30 @@ interface UpdateReservationResponse {
 
 class SupervisorCompleteReservationService extends ApiService {
   updateReservation = async (taskSid: string, reservationSid: string, status: string): Promise<FetchedReservation> => {
-    const encodedParams: EncodedParams = {
-      Token: encodeURIComponent(this.manager.user.token),
-      taskSid: encodeURIComponent(taskSid),
-      reservationSid: encodeURIComponent(reservationSid),
-      status: encodeURIComponent(status),
-    };
-    try {
-      const { reservation } = await this.fetchJsonWithReject<UpdateReservationResponse>(
+    return new Promise((resolve, reject) => {
+      const encodedParams: EncodedParams = {
+        Token: encodeURIComponent(this.manager.user.token),
+        taskSid: encodeURIComponent(taskSid),
+        reservationSid: encodeURIComponent(reservationSid),
+        status: encodeURIComponent(status),
+      };
+
+      this.fetchJsonWithReject<UpdateReservationResponse>(
         `${this.serverlessProtocol}://${this.serverlessDomain}/features/supervisor-complete-reservation/flex/update-reservation`,
         {
           method: 'post',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: this.buildBody(encodedParams),
         },
-      );
-      return { ...reservation, taskSid };
-    } catch (error: any) {
-      logger.error('[supervisor-complete-reservation] Error updating reservation', error);
-      // eslint-disable-next-line no-throw-literal
-      throw { taskSid, error };
-    }
+      )
+        .then((response: UpdateReservationResponse) => {
+          resolve({ ...response.reservation, taskSid });
+        })
+        .catch((error) => {
+          console.log('Error updating reservation', error);
+          reject({ taskSid, error });
+        });
+    });
   };
 }
 

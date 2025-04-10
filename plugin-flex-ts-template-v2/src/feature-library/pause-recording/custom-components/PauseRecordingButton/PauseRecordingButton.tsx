@@ -1,9 +1,10 @@
-import { Actions, IconButton, TaskHelper, ITask, templates } from '@twilio/flex-ui';
+import { IconButton, TaskHelper, ITask, templates } from '@twilio/flex-ui';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import AppState from '../../../../types/manager/AppState';
 import { reduxNamespace } from '../../../../utils/state';
+import { pauseRecording, resumeRecording } from '../../helpers/pauseRecordingHelper';
 import { StringTemplates } from '../../flex-hooks/strings/PauseRecording';
 import { PauseRecordingState } from '../../flex-hooks/states/PauseRecordingSlice';
 
@@ -53,9 +54,9 @@ const PauseRecordingButton = (props: OwnProps) => {
     setWaiting(true);
 
     if (paused) {
-      await Actions.invokeAction('ResumeCallRecording', { task: props.task });
+      await resumeRecording(props.task);
     } else {
-      await Actions.invokeAction('PauseCallRecording', { task: props.task });
+      await pauseRecording(props.task);
     }
 
     setWaiting(false);

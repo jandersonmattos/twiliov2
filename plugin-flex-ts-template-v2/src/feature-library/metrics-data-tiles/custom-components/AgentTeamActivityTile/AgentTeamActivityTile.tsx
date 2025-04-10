@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Box } from '@twilio-paste/core/box';
 import { Table, THead, TBody, Th, Tr, Td } from '@twilio-paste/core/table';
 import { Tooltip } from '@twilio-paste/core/tooltip';
+import { SupervisorWorkerState } from '@twilio/flex-ui/src/state/State.definition';
 import AppState from 'types/manager/AppState';
 import { EmojiIcon } from '@twilio-paste/icons/esm/EmojiIcon';
 
@@ -16,7 +17,7 @@ import { StringTemplates } from '../../flex-hooks/strings';
 const AgentTeamActivityTile = () => {
   const teams = getTeams();
   const workerActivityCounts: TeamActivityCounts = useFlexSelector((state: AppState) => {
-    const workers = state.flex.supervisor.workers;
+    const workers: SupervisorWorkerState[] = state.flex.supervisor.workers;
     return getAgentStatusCounts(workers, teams);
   });
   const activityConfig = getAgentActivityConfig();

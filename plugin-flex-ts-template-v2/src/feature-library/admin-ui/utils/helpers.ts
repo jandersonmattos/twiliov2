@@ -7,7 +7,6 @@ import { isFeatureEnabled, isAuditLoggingEnabled } from '../config';
 import { AdminUiNotification } from '../flex-hooks/notifications';
 import AdminUiService from './AdminUiService';
 import { saveAuditEvent } from '../../../utils/helpers/AuditHelper';
-import logger from '../../../utils/logger';
 
 const acronyms = ['id', 'ui', 'sip', 'pstn', 'sms', 'crm', 'sla', 'cbm', 'url', 'ttl'];
 const hiddenFeatures = ['admin_ui'];
@@ -134,10 +133,10 @@ export const saveUserConfig = async (feature: string, config: any): Promise<bool
     } else {
       await resetWorkerSetting(feature);
     }
-  } catch (error: any) {
+  } catch (error) {
     Notifications.dismissNotificationById(AdminUiNotification.SAVE_SUCCESS);
     Notifications.showNotification(AdminUiNotification.SAVE_ERROR);
-    logger.error('[admin-ui] Unable to update user config', error);
+    console.error('admin-ui: Unable to update user config', error);
     return false;
   }
 
@@ -182,10 +181,10 @@ export const saveGlobalConfig = async (feature: string, config: any, mergeFeatur
       returnVal = globalConfigCache.custom_data;
       auditLog(true, originalConfig, merge({}, originalConfig, updatePayload.custom_data));
     } else {
-      logger.error('[admin-ui] Unexpected response upon updating global config', updateResponse);
+      console.error('admin-ui: Unexpected response upon updating global config', updateResponse);
     }
-  } catch (error: any) {
-    logger.error('[admin-ui] Unable to update global config', error);
+  } catch (error) {
+    console.error('admin-ui: Unable to update global config', error);
   }
 
   if (!returnVal) {

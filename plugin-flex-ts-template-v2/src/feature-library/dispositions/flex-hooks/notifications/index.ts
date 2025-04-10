@@ -6,7 +6,6 @@ import { StringTemplates } from '../strings';
 export enum DispositionsNotification {
   DispositionRequired = 'PSDispositionRequired',
   AttributeRequired = 'PSAttributeRequired',
-  DispositionRequiredBypassed = 'PSDispositionRequiredBypassed',
 }
 
 // Return an array of Flex.Notification
@@ -22,11 +21,5 @@ export const notificationHook = (_flex: typeof Flex, _manager: Flex.Manager) => 
     type: Flex.NotificationType.error,
     content: StringTemplates.AttributeRequired,
     timeout: 3500,
-  },
-  {
-    id: DispositionsNotification.DispositionRequiredBypassed,
-    type: Flex.NotificationType.warning,
-    content: StringTemplates.DispositionRequiredBypassed,
-    timeout: 0,
   },
 ];

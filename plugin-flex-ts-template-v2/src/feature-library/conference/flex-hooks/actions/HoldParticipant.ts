@@ -3,7 +3,6 @@ import * as Flex from '@twilio/flex-ui';
 import ProgrammableVoiceService from '../../../../utils/serverless/ProgrammableVoice/ProgrammableVoiceService';
 import { isConferenceEnabledWithoutNativeXWT } from '../../config';
 import { FlexActionEvent, FlexAction } from '../../../../types/feature-loader';
-import logger from '../../../../utils/logger';
 
 export const actionEvent = FlexActionEvent.before;
 export const actionName = FlexAction.HoldParticipant;
@@ -19,7 +18,7 @@ export const actionHook = function handleHoldConferenceParticipant(flex: typeof 
 
     const conferenceSid = task.conference?.conferenceSid || task.attributes?.conference?.sid;
     abortFunction();
-    logger.info(`[conference] Holding participant ${participantSid}`);
+    console.log('Holding participant', participantSid);
     await ProgrammableVoiceService.holdParticipant(conferenceSid, participantSid);
   });
 };

@@ -75,7 +75,7 @@ exports.handler = prepareFlexFunction(requiredParameters, async (context, event,
               .syncMaps(syncMap.data?.sid || `ParkedInteractions_${workerSid}`)
               .syncMapItems.create({
                 key: conversationSid,
-                ttl: channelType === 'sms' ? 0 : 86400, // SMS is the only channel known to reliably last over 24 hours
+                ttl: 86400, // One day
                 data: {
                   interactionSid,
                   flexInteractionChannelSid: channelSid,

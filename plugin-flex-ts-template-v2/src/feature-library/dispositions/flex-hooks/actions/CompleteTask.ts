@@ -3,7 +3,6 @@ import * as Flex from '@twilio/flex-ui';
 import {
   getDispositionsForQueue,
   isNotesEnabled,
-  isNativeWrapupEnabled,
   isRequireDispositionEnabledForQueue,
   getTextAttributes,
   getSelectAttributes,
@@ -14,21 +13,8 @@ import { DispositionsState } from '../states';
 import { FlexActionEvent, FlexAction } from '../../../../types/feature-loader';
 import { DispositionsNotification } from '../notifications';
 import TaskRouterService from '../../../../utils/serverless/TaskRouter/TaskRouterService';
-import logger from '../../../../utils/logger';
 
-const handleAbort = (flex: typeof Flex, abortFunction: any, queueSid: string, dispositionError: boolean) => {
-  if (isNativeWrapupEnabled()) {
-    const enabledQueues = (flex.Manager.getInstance().store.getState().flex as any).agentCopilot?.config?.enabledQueues;
-
-    if (enabledQueues && (!enabledQueues.length || enabledQueues.find((item: string) => item === queueSid))) {
-      // If the native wrapup component is enabled for this queue, we don't want to abort the CompleteTask action.
-      // This is because the native wrapup component will also submit within beforeCompleteTask, then clear its inputs.
-      // So when we abort, the native wrapup values get cleared, and then when the agent attempts to complete again, they cannot due to missing values!
-      flex.Notifications.showNotification(DispositionsNotification.DispositionRequiredBypassed);
-      return;
-    }
-  }
-
+const handleAbort = (flex: typeof Flex, abortFunction: any, dispositionError: boolean) => {
   flex.Notifications.showNotification(
     dispositionError ? DispositionsNotification.DispositionRequired : DispositionsNotification.AttributeRequired,
   );
@@ -54,56 +40,40 @@ export const actionHook = function setDispositionBeforeCompleteTask(flex: typeof
     const textAttributes = getTextAttributes(queueSid, queueName);
     const selectAttributes = getSelectAttributes(queueSid, queueName);
 
-    // If notes are disabled, and no dispositions are configured, return.
+    // If notes disabled, and no dispositions are configured, return.
     if (numDispositions < 1 && !isNotesEnabled() && textAttributes.length < 1 && selectAttributes.length < 1) {
       return;
     }
 
-    // Retrieve the user input from Redux.
+    // First, check if a disposition and/or notes are set.
     const { tasks } = (manager.store.getState() as AppState)[reduxNamespace].dispositions as DispositionsState;
-    const taskDisposition = tasks[payload.task.taskSid];
 
-    // Check for any required custom attributes that are missing.
-    let missingCustomAttrs = 0;
-    textAttributes.forEach((attr) => {
-      if (
-        attr.required &&
-        (!taskDisposition?.custom_attributes || !taskDisposition?.custom_attributes[attr.conversation_attribute])
-      )
-        missingCustomAttrs += 1;
-    });
-    selectAttributes.forEach((attr) => {
-      if (
-        attr.required &&
-        (!taskDisposition?.custom_attributes || !taskDisposition?.custom_attributes[attr.conversation_attribute])
-      )
-        missingCustomAttrs += 1;
-    });
-
-    // If nothing exists for this task in Redux, we only need to check the configuration to see if we should abort.
-    if (!taskDisposition) {
+    if (!tasks || !tasks[payload.task.taskSid]) {
       if (isRequireDispositionEnabledForQueue(queueSid, queueName) && numDispositions > 0) {
-        handleAbort(flex, abortFunction, queueSid, true);
-      } else if (missingCustomAttrs > 0) {
-        handleAbort(flex, abortFunction, queueSid, false);
+        handleAbort(flex, abortFunction, true);
       }
       return;
     }
 
-    // Validate the task data from Redux against the configuration to see if any required data is missing.
+    const taskDisposition = tasks[payload.task.taskSid];
+    let newConvAttributes = {};
+
     if (
       isRequireDispositionEnabledForQueue(queueSid, queueName) &&
       !taskDisposition.disposition &&
       numDispositions > 0
     ) {
-      handleAbort(flex, abortFunction, queueSid, true);
+      handleAbort(flex, abortFunction, true);
       return;
     }
-
-    if (missingCustomAttrs > 0) {
-      handleAbort(flex, abortFunction, queueSid, false);
-      return;
-    }
+    let missing = 0;
+    textAttributes.forEach((attr) => {
+      if (attr.required && !taskDisposition?.custom_attributes[attr.conversation_attribute]) missing += 1;
+    });
+    selectAttributes.forEach((attr) => {
+      if (attr.required && !taskDisposition?.custom_attributes[attr.conversation_attribute]) missing += 1;
+    });
+    if (missing > 0) handleAbort(flex, abortFunction, false);
 
     if (
       !taskDisposition.disposition &&
@@ -113,9 +83,6 @@ export const actionHook = function setDispositionBeforeCompleteTask(flex: typeof
       // Nothing for us to do, and it's okay!
       return;
     }
-
-    // We have data to save! Build the task attribute update payload.
-    let newConvAttributes = {};
 
     if (taskDisposition.disposition) {
       newConvAttributes = {
@@ -143,11 +110,8 @@ export const actionHook = function setDispositionBeforeCompleteTask(flex: typeof
         },
         true,
       );
-    } catch (error: any) {
-      logger.error(
-        `[dispositions] Failed to set disposition attributes for ${payload.task.taskSid} to ${newConvAttributes}`,
-        error,
-      );
+    } catch (error) {
+      console.log(`Failed to set disposition attributes for ${payload.task.taskSid} to ${newConvAttributes}`, error);
     }
   });
 };

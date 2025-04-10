@@ -17,7 +17,7 @@ import KeyCommand from '../KeyCommand';
 import ModalWindow from '../ModalWindow';
 import DeleteButton from '../DeleteButton';
 import { ShortcutsObject } from '../../../types/types';
-import { getShortcuts } from '../../../utils/KeyboardShortcutsUtil';
+import { getCustomShortcuts } from '../../../utils/KeyboardShortcutsUtil';
 
 interface CustomKeyboardShortcutsViewProps {
   reset: boolean;
@@ -55,12 +55,12 @@ const CustomKeyboardShortcutsView = ({
   };
 
   useEffect(() => {
-    setCustomShortcuts(getShortcuts(true));
+    setCustomShortcuts(getCustomShortcuts());
     setShortcutsDeleted(false);
   }, [reset]);
 
   useEffect(() => {
-    if (Object.keys(getShortcuts(true)).length === 0) {
+    if (Object.keys(getCustomShortcuts()).length === 0) {
       setShortcutsDeleted(true);
     }
   }, [customShortcuts]);

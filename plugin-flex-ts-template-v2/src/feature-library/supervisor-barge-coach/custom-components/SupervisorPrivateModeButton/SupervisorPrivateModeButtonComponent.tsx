@@ -6,7 +6,7 @@ import { Stack } from '@twilio-paste/core/stack';
 
 import { AppState } from '../../../../types/manager';
 import { reduxNamespace } from '../../../../utils/state';
-import { setBargeCoachStatus, SupervisorBargeCoachState } from '../../flex-hooks/states/SupervisorBargeCoachSlice';
+import { Actions, SupervisorBargeCoachState } from '../../flex-hooks/states/SupervisorBargeCoach';
 import { StringTemplates } from '../../flex-hooks/strings/BargeCoachAssist';
 // Used for Sync Docs
 import { SyncDoc } from '../../utils/sync/Sync';
@@ -18,47 +18,73 @@ type SupervisorPrivateToggleProps = {
 export const SupervisorPrivateToggle = ({ task }: SupervisorPrivateToggleProps) => {
   const dispatch = useDispatch();
 
-  const { coaching, muted, privateMode } = useSelector(
+  const { barge, coaching, privateMode } = useSelector(
     (state: AppState) => state[reduxNamespace].supervisorBargeCoach as SupervisorBargeCoachState,
   );
 
-  const agentWorkerSID = useFlexSelector((state) => state?.flex?.supervisor?.callMonitoring?.task?.workerSid) || '';
-  const monitoringState = useFlexSelector((state) => state?.flex?.supervisor?.callMonitoring?.status) || 0;
+  const agentWorkerSID = useFlexSelector((state) => state?.flex?.supervisor?.stickyWorker?.worker?.sid) || '';
   const myWorkerSID = useFlexSelector((state) => state?.flex?.worker?.worker?.sid) || '';
   const supervisorFN = useFlexSelector((state) => state?.flex?.worker?.attributes?.full_name) || '';
 
   // We will toggle the private mode on/off based on the button click and the state
-  // of the coachingStatusPanel along with updating the Sync Doc appropriately
+  // of the coachingStatusPanel along with udpating the Sync Doc appropriately
   const togglePrivateMode = () => {
     const conference = task && task.conference;
     const conferenceSID = conference?.conferenceSid || '';
-    const newValue = !privateMode;
 
-    // Caching this to help with browser refresh recovery
-    localStorage.setItem('privateMode', `${newValue}`);
-    dispatch(
-      setBargeCoachStatus({
-        privateMode: newValue,
-      }),
-    );
-
-    if (!agentWorkerSID || monitoringState === 0) {
-      // Don't update Sync doc if we are not monitoring anyone
-      return;
-    }
-
-    if (newValue) {
-      // Remove the supervisor from the Sync Doc
-      SyncDoc.initSyncDocSupervisors(agentWorkerSID, conferenceSID, myWorkerSID, supervisorFN, '', 'remove');
-    } else {
-      // Update the Sync Doc with the appropriate supervisor and status now that private mode is off
-      let supervisorStatus = 'monitoring';
+    // If privateMode is true, toggle to false and update the Sync Doc with the appropriate Supervisor and Status
+    if (privateMode) {
+      // Caching this to help with browser refresh recovery
+      localStorage.setItem('privateMode', 'false');
+      dispatch(
+        Actions.setBargeCoachStatus({
+          privateMode: false,
+        }),
+      );
       if (coaching) {
-        supervisorStatus = 'coaching';
-      } else if (!muted) {
-        supervisorStatus = 'barge';
+        const supervisorStatus = 'coaching';
+        const updateStatus = 'add';
+        SyncDoc.initSyncDocSupervisors(
+          agentWorkerSID,
+          conferenceSID,
+          myWorkerSID,
+          supervisorFN,
+          supervisorStatus,
+          updateStatus,
+        );
+      } else if (barge) {
+        const supervisorStatus = 'barge';
+        const updateStatus = 'add';
+        SyncDoc.initSyncDocSupervisors(
+          agentWorkerSID,
+          conferenceSID,
+          myWorkerSID,
+          supervisorFN,
+          supervisorStatus,
+          updateStatus,
+        );
+      } else {
+        const supervisorStatus = 'monitoring';
+        const updateStatus = 'add';
+        SyncDoc.initSyncDocSupervisors(
+          agentWorkerSID,
+          conferenceSID,
+          myWorkerSID,
+          supervisorFN,
+          supervisorStatus,
+          updateStatus,
+        );
       }
-      SyncDoc.initSyncDocSupervisors(agentWorkerSID, conferenceSID, myWorkerSID, supervisorFN, supervisorStatus, 'add');
+      // If privateMode is false, toggle to true and remove the Supervisor from the Sync Doc
+    } else {
+      // Caching this to help with browser refresh recovery
+      localStorage.setItem('privateMode', 'true');
+      dispatch(
+        Actions.setBargeCoachStatus({
+          privateMode: true,
+        }),
+      );
+      SyncDoc.initSyncDocSupervisors(agentWorkerSID, conferenceSID, myWorkerSID, supervisorFN, '', 'remove');
     }
   };
 
@@ -68,7 +94,7 @@ export const SupervisorPrivateToggle = ({ task }: SupervisorPrivateToggleProps) 
   const isLiveCall = TaskHelper.isLiveCall(task);
 
   return (
-    <Flex hAlignContent="center" vertical padding="space30" paddingTop="space50">
+    <Flex hAlignContent="center" vertical padding="space30">
       <Stack orientation="horizontal" spacing="space30" element="SUPERVISOR_PRIVATE_BUTTON_BOX">
         <IconButton
           icon={privateMode ? 'EyeBold' : 'Eye'}

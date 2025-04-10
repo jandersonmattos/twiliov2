@@ -1,4 +1,5 @@
 import { Manager, templates } from '@twilio/flex-ui';
+import { Box } from '@twilio-paste/core/box';
 import { Input } from '@twilio-paste/core/input';
 import { SearchIcon } from '@twilio-paste/icons/esm/SearchIcon';
 import { Ref } from 'react';
@@ -27,7 +28,11 @@ const SearchInput = ({ onInputChange, inputRef }: SearchBoxProps) => {
 };
 
 const SearchBox = ({ onInputChange, inputRef }: SearchBoxProps) => {
-  return <SearchInput onInputChange={onInputChange} inputRef={inputRef} />;
+  return (
+    <Box width="100%" paddingLeft="space50" paddingRight="space50" paddingTop="space60" paddingBottom="space50">
+      <SearchInput onInputChange={onInputChange} inputRef={inputRef} />
+    </Box>
+  );
 };
 
 export default SearchBox;

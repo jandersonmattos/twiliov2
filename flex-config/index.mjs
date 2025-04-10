@@ -1,14 +1,10 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { promises as fs } from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 import merge from 'lodash/merge.js';
 
 import { fillReplacementsForString } from "../scripts/common/fill-replacements.mjs";
 import printReplacements from "../scripts/common/print-replacements.mjs";
-
-const regionUrl = process.env.TWILIO_REGION ? `${process.env.TWILIO_REGION}.twilio.com` : 'twilio.com';
 
 async function exists (path) {  
   try {
@@ -76,9 +72,7 @@ async function deployConfigurationData({ auth, environment, overwrite }) {
       }
     }
 
-    // The env-specific file name may contain special characters that the URL interface encodes undesirably
-    const pathEnvFile = path.join(fileURLToPath(new URL('.', import.meta.url)), envFileName);
-    const uiAttributesEnvFile = await fs.readFile(pathEnvFile, 'utf8');
+    const uiAttributesEnvFile = await fs.readFile(new URL(envFileName, import.meta.url), 'utf8');
     const uiAttributesCommonFile = await fs.readFile(new URL(commonFileName, import.meta.url), 'utf8');
     const taskrouter_skills = JSON.parse(await fs.readFile(new URL(skillsFileName, import.meta.url), 'utf8'));
     
@@ -143,14 +137,15 @@ async function deployConfigurationData({ auth, environment, overwrite }) {
     })
   } catch (error) {
     console.error("Error caught:", error);
-    process.exitCode = 1;
+    console.log("Auth", error.config?.auth);
+    console.log("Data", error.response?.data);
   }
 }
 
 async function getConfiguration({ auth }) {
   return axios({
     method: "get",
-    url: `https://flex-api.${regionUrl}/v1/Configuration`,
+    url: "https://flex-api.twilio.com/v1/Configuration",
     auth: {
       username: auth.apiKey,
       password: auth.apiSecret,
@@ -161,7 +156,7 @@ async function getConfiguration({ auth }) {
 async function setConfiguration({ auth, configurationChanges }) {
   return axios({
     method: "post",
-    url: `https://flex-api.${regionUrl}/v1/Configuration`,
+    url: "https://flex-api.twilio.com/v1/Configuration",
     auth: {
       username: auth.apiKey,
       password: auth.apiSecret,

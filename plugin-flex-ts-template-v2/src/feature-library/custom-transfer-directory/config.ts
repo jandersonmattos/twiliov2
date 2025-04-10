@@ -1,12 +1,11 @@
 import { Manager } from '@twilio/flex-ui';
 
-import { getFeatureFlags, getFlexFeatureFlag, getLoadedFeatures } from '../../utils/configuration';
+import { getFeatureFlags } from '../../utils/configuration';
 import { ExternalDirectoryEntry } from './types/DirectoryEntry';
 import CustomTransferDirectoryConfig from './types/ServiceConfiguration';
 
 const {
   enabled = false,
-  max_items = 200,
   queue: queue_config,
   worker: worker_config,
   external_directory: external_directory_config,
@@ -21,11 +20,7 @@ const {
   global_exclude_filter = '',
 } = queue_config || {};
 
-const {
-  enabled: workerEnabled = false,
-  show_only_available_workers = false,
-  max_taskrouter_workers = 15000,
-} = worker_config || {};
+const { enabled: workerEnabled = false, show_only_available_workers = false } = worker_config || {};
 
 const {
   enabled: externalDirectoryEnabled = false,
@@ -34,18 +29,18 @@ const {
 } = external_directory_config || {};
 
 const {
+  enabled: conversation_transfer_enabled = false,
   cold_transfer: conversation_transfer_cold_transfer = false,
   multi_participant: conversation_transfer_warm_transfer = false,
 } = getFeatureFlags()?.features?.conversation_transfer || {};
 
-const nativeXwtEnabled = getFlexFeatureFlag('external-warm-transfers');
+const { enabled: conference_enabled = false } = getFeatureFlags()?.features?.conference || {};
+
+const nativeXwtEnabled =
+  Manager.getInstance().store.getState().flex.featureFlags.features['external-warm-transfers']?.enabled === true;
 
 export const isFeatureEnabled = (): boolean => {
   return enabled;
-};
-
-export const getMaxItems = (): number => {
-  return max_items;
 };
 
 export const isCustomQueueTransferEnabled = (): boolean => {
@@ -77,14 +72,11 @@ export const shouldFetchInsightsData = (): boolean => {
 };
 
 export const isCbmColdTransferEnabled = (): boolean => {
-  return (
-    isNativeDigitalXferEnabled() ||
-    (getLoadedFeatures().includes('conversation-transfer') && conversation_transfer_cold_transfer)
-  );
+  return conversation_transfer_enabled && conversation_transfer_cold_transfer;
 };
 
 export const isCbmWarmTransferEnabled = (): boolean => {
-  return getLoadedFeatures().includes('conversation-transfer') && conversation_transfer_warm_transfer;
+  return conversation_transfer_enabled && conversation_transfer_warm_transfer;
 };
 
 export const isExternalDirectoryEnabled = (): boolean => {
@@ -96,7 +88,7 @@ export const getExternalDirectory = (): Array<ExternalDirectoryEntry> => {
 };
 
 export const isVoiceXWTEnabled = () => {
-  return getLoadedFeatures().includes('conference') || nativeXwtEnabled;
+  return conference_enabled || nativeXwtEnabled;
 };
 
 export const shouldSkipPhoneNumberValidation = () => {
@@ -109,12 +101,4 @@ export const isCustomWorkerTransferEnabled = (): boolean => {
 
 export const showOnlyAvailableWorkers = (): boolean => {
   return show_only_available_workers;
-};
-
-export const getMaxTaskRouterWorkers = (): number => {
-  return max_taskrouter_workers;
-};
-
-export const isNativeDigitalXferEnabled = (): boolean => {
-  return Manager.getInstance().store.getState().flex.featureFlags?.transfersConfig?.enabled === true;
 };

@@ -14,7 +14,6 @@ export enum NotificationIds {
   ChatCancelParticipantInviteFailed = 'ChatCancelParticipantInviteFailed',
   ChatCancelParticipantInviteSuccess = 'ChatCancelParticipantInviteSuccess',
   ChatCancelParticipantInviteFailedInviteOutstanding = 'ChatCancelParticipantInviteFailedInviteOutstanding',
-  TransferPendingError = 'PSConvTransferPendingError',
 }
 
 export const notificationHook = () => [
@@ -92,13 +91,6 @@ export const notificationHook = () => [
     id: NotificationIds.ChatCancelParticipantInviteFailedInviteOutstanding,
     closeButton: true,
     content: StringTemplates.ChatParticipantInviteOutstanding,
-    timeout: 3000,
-    type: NotificationType.error,
-  },
-  {
-    id: NotificationIds.TransferPendingError,
-    closeButton: true,
-    content: StringTemplates.TransferPendingError,
     timeout: 3000,
     type: NotificationType.error,
   },

@@ -2,57 +2,66 @@
 import * as Flex from '@twilio/flex-ui';
 import { KeyboardShortcuts } from '@twilio/flex-ui/src/KeyboardShortcuts';
 
-import { validateUiVersion } from '../../../utils/configuration';
-import { ShortcutsObject, RemapShortcutObject, ShortcutActions } from '../types/types';
+import { ShortcutsObject, CustomShortcut, RemapShortcutObject, ShortcutActions } from '../types/types';
 import { readFromLocalStorage, deleteMultipleFromLocalStorage } from './LocalStorageUtil';
+import { presetCustomShortcuts } from './CustomKeyboardShortcuts';
 import { shortcutsConfig, deleteShortcuts, enableThrottling, removeAllShortcuts } from './constants';
 
-const initialShortcuts: KeyboardShortcuts = {};
-
 export const isSupported = (): boolean => {
-  return validateUiVersion('>=2.1');
-};
-
-export const initialize = () => {
-  // Clone the initial shortcuts state before we remap them
-  for (const [key, value] of Object.entries(getCurrentShortcuts())) {
-    initialShortcuts[key] = {
-      name: value.name,
-      throttle: value.throttle,
-      action: value.action,
-    };
-  }
-  getUserConfig();
+  return !(
+    Flex.VERSION.startsWith('1') ||
+    Flex.VERSION === '2.0.0' ||
+    Flex.VERSION === '2.0.1' ||
+    Flex.VERSION === '2.0.2'
+  );
 };
 
 export const getCurrentShortcuts = (): KeyboardShortcuts => {
   return Flex.KeyboardShortcutManager.keyboardShortcuts;
 };
 
-export const replaceShortcuts = (keyboardShortcuts: KeyboardShortcuts) => {
+export const shortcutInitUtil = (keyboardShortcuts: KeyboardShortcuts) => {
   Flex.KeyboardShortcutManager.init(keyboardShortcuts);
 };
 
-export const deleteShortcut = (shortcutKey: string): void => {
-  Flex.KeyboardShortcutManager.deleteShortcuts([shortcutKey]);
+export const deleteShortcutsUtil = (shortcut: string): void => {
+  Flex.KeyboardShortcutManager.deleteShortcuts([shortcut]);
 };
 
-export const disableAllShortcuts = (): void => {
+export const disableKeyboardShortcutsUtil = (): void => {
   Flex.KeyboardShortcutManager.disableShortcuts();
 };
 
-export const resetShortcuts = (): void => {
-  disableAllShortcuts();
+export const resetKeyboardShortcutsUtil = (): void => {
+  disableKeyboardShortcutsUtil();
   deleteMultipleFromLocalStorage([deleteShortcuts, enableThrottling, removeAllShortcuts, shortcutsConfig]);
-  replaceShortcuts(initialShortcuts);
+  shortcutInitUtil(Flex.defaultKeyboardShortcuts);
 };
 
-export const remapShortcut = (oldKey: string, newKey: string, shortcutObject: RemapShortcutObject): void => {
+export const addKeyboardShortcutUtil = (shortcutObject: KeyboardShortcuts): void => {
+  Flex.KeyboardShortcutManager.addShortcuts(shortcutObject);
+};
+
+export const remapKeyboardShortcutUtil = (
+  oldKey: string,
+  newKey: string,
+  shortcutObject: RemapShortcutObject,
+): void => {
   Flex.KeyboardShortcutManager.remapShortcut(
     oldKey,
     typeof newKey === 'string' ? newKey.toUpperCase() : newKey,
     shortcutObject,
   );
+};
+
+export const initCustomShortcuts = (): CustomShortcut[] => {
+  return Object.entries(presetCustomShortcuts()).map((item): CustomShortcut => {
+    return {
+      key: item[0],
+      actionName: item[1].name,
+      throttle: item[1]?.throttle,
+    };
+  });
 };
 
 export const getAllShortcuts = (): ShortcutsObject[] => {
@@ -66,21 +75,35 @@ export const getAllShortcuts = (): ShortcutsObject[] => {
   });
 };
 
-export const getShortcuts = (getCustom: boolean): ShortcutsObject[] => {
+export const getDefaultShortcuts = (): ShortcutsObject[] => {
+  getUserConfig();
+  const customShortcuts = initCustomShortcuts();
   const allShortcuts = getAllShortcuts();
 
-  const defaultShortcutsKeys = Object.values(Flex.defaultKeyboardShortcuts).map((item) => item.name);
+  const customShortcutsKeys = Object.values(customShortcuts).map((item) => item.actionName);
 
-  if (getCustom) {
-    return allShortcuts.filter((item) => defaultShortcutsKeys.indexOf(item.actionName) === -1);
+  return allShortcuts.filter((item) => customShortcutsKeys.indexOf(item.actionName) === -1);
+};
+
+export const getCustomShortcuts = (): ShortcutsObject[] => {
+  getUserConfig();
+  if (readFromLocalStorage(shortcutsConfig) === (undefined || null)) {
+    addKeyboardShortcutUtil(presetCustomShortcuts());
   }
-  return allShortcuts.filter((item) => defaultShortcutsKeys.indexOf(item.actionName) !== -1);
+
+  const customShortcuts = initCustomShortcuts();
+  const allShortcuts = getAllShortcuts();
+
+  const customShortcutsKeys = Object.values(customShortcuts).map((item) => item.actionName);
+
+  return allShortcuts.filter((item) => customShortcutsKeys.indexOf(item.actionName) !== -1);
 };
 
 export const getUserConfig = (): void => {
   const localConfig = readFromLocalStorage(shortcutsConfig);
 
   if (localConfig) {
+    addKeyboardShortcutUtil(presetCustomShortcuts());
     const userLocalConfig: ShortcutsObject = JSON.parse(localConfig);
     const systemConfig = getCurrentShortcuts();
 
@@ -114,6 +137,8 @@ export const getUserConfig = (): void => {
       return { ...systemItem, oldKey: systemItem.key, delete: true };
     });
 
+    disableKeyboardShortcutsUtil();
+
     userConfig.forEach((shortcut) => {
       Flex.KeyboardShortcutManager.remapShortcut(shortcut.oldKey, shortcut.key, {
         action: shortcut.action,
@@ -122,9 +147,11 @@ export const getUserConfig = (): void => {
       });
 
       if (shortcut.delete === true) {
-        deleteShortcut(shortcut.key);
+        deleteShortcutsUtil(shortcut.key);
       }
     });
+
+    shortcutInitUtil(Flex.KeyboardShortcutManager.keyboardShortcuts);
   }
 };
 

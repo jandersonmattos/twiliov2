@@ -4,7 +4,6 @@ import { Actions, ITask, ConversationState, Notifications, styled, IconButton, t
 import { ChatToVideoNotification } from '../../flex-hooks/notifications/ChatToVideo';
 import { StringTemplates } from '../../flex-hooks/strings/ChatToVideo';
 import ChatToVideoService from '../../utils/ChatToVideoService';
-import logger from '../../../../utils/logger';
 
 interface SwitchToVideoProps {
   task: ITask;
@@ -35,7 +34,7 @@ const SwitchToVideo: React.FunctionComponent<SwitchToVideoProps> = ({ task, conv
       }
 
       const url = ChatToVideoService.generateUrl('Customer', response.roomName);
-      logger.info(`[chat-to-video-escalation] unique link created: ${url}`);
+      console.log('chat-to-video-escalation: unique link created:', url);
 
       await Actions.invokeAction('SendMessage', {
         body: `${templates[StringTemplates.InviteMessage]()} ${url}`,
@@ -46,8 +45,8 @@ const SwitchToVideo: React.FunctionComponent<SwitchToVideoProps> = ({ task, conv
           uniqueCode: response.roomName,
         },
       });
-    } catch (error: any) {
-      logger.error('[chat-to-video-escalation] error creating unique video link:', error);
+    } catch (error) {
+      console.log('chat-to-video-escalation: error creating unique video link:', error);
       Notifications.showNotification(ChatToVideoNotification.FailedVideoLinkNotification);
     }
 

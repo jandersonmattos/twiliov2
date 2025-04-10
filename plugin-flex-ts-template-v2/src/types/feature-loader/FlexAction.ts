@@ -16,7 +16,6 @@ export enum FlexAction {
   UnholdParticipant = 'UnholdParticipant',
   NavigateToView = 'NavigateToView',
   RejectTask = 'RejectTask',
-  SendMessage = 'SendMessage',
   SetActivity = 'SetActivity',
   StartExternalWarmTransfer = 'StartExternalWarmTransfer',
   ShowDirectory = 'ShowDirectory',

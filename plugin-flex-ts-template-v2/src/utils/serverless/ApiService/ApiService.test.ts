@@ -26,7 +26,10 @@ describe('utils/common/ApiService', () => {
 
   it('should provide access to the configured serverless domain', () => {
     const { custom_data } = Flex.Manager.getInstance().configuration as UIAttributes;
-    const { serverless_functions_domain, serverless_functions_port } = custom_data;
+    const {
+      serverless_functions_domain,
+      serverless_functions_port,
+    } = custom_data;
     expect(TestService.serverlessDomain).toBe(`${serverless_functions_domain}:${serverless_functions_port}`);
   });
 

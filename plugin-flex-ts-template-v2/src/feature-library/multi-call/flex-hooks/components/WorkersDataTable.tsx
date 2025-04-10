@@ -1,4 +1,5 @@
 import * as Flex from '@twilio/flex-ui';
+import { SupervisorWorkerState } from '@twilio/flex-ui/src/state/State.definition';
 
 import { FlexComponent } from '../../../../types/feature-loader';
 
@@ -21,7 +22,7 @@ export const componentHook = function replaceWorkerDataTableCallsColumnMultiCall
       style={{
         width: '14rem',
       }}
-      content={(item: any, context: Flex.ColumnDataCreationContext) => (
+      content={(item: SupervisorWorkerState, context: Flex.ColumnDataCreationContext) => (
         <CallsColumnStyle>
           <Flex.TaskCardList
             tasks={item.tasks}

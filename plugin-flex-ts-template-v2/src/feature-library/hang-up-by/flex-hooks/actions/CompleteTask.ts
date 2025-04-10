@@ -4,7 +4,6 @@ import * as HangUpByHelper from '../../helpers/hangUpBy';
 import { HangUpBy } from '../../enums/hangUpBy';
 import TaskRouterService from '../../../../utils/serverless/TaskRouter/TaskRouterService';
 import { FlexActionEvent, FlexAction } from '../../../../types/feature-loader';
-import logger from '../../../../utils/logger';
 
 export const actionEvent = FlexActionEvent.before;
 export const actionName = FlexAction.CompleteTask;
@@ -38,9 +37,9 @@ export const actionHook = function reportHangUpByCompleteTask(flex: typeof Flex,
       }
 
       await TaskRouterService.updateTaskAttributes(task.taskSid, attributes, true);
-      logger.debug(`[hang-up-by] Set conversation attributes for ${task.taskSid}`, attributes);
-    } catch (error: any) {
-      logger.error(`[hang-up-by] Failed to set conversation attributes for ${payload.sid}`, error);
+      console.log(`Set conversation attributes for ${task.taskSid}`, attributes);
+    } catch (error) {
+      console.log(`Failed to set conversation attributes for ${payload.sid}`, error);
     }
   });
 };

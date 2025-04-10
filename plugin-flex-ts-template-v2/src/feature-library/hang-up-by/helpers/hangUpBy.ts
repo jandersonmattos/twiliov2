@@ -3,7 +3,6 @@ import * as Flex from '@twilio/flex-ui';
 import TaskRouterService from '../../../utils/serverless/TaskRouter/TaskRouterService';
 import HangUpByService from '../utils/HangUpByService';
 import { HangUpBy } from '../enums/hangUpBy';
-import logger from '../../../utils/logger';
 
 const instanceSid = Flex.Manager.getInstance().serviceConfiguration.flex_service_instance_sid;
 const STORAGE_KEY = `hang_up_by_${instanceSid}`;
@@ -66,7 +65,7 @@ export const hasAnotherNonWorkerJoined = async (task: Flex.ITask) => {
     for (const p of otherNonWorkers) {
       try {
         if (!p.callSid) {
-          logger.warn('[hang-up-by] Unable to get participant from conference, missing participant sid');
+          console.log('Unable to get participant from conference, missing participant sid');
           continue;
         }
 
@@ -76,8 +75,8 @@ export const hasAnotherNonWorkerJoined = async (task: Flex.ITask) => {
           joinedNonWorkers = true;
           break;
         }
-      } catch (error: any) {
-        logger.warn('[hang-up-by] Unable to get participant from conference, it probably ended', error);
+      } catch (error) {
+        console.log('Unable to get participant from conference, it probably ended', error);
       }
     }
 
@@ -118,7 +117,7 @@ export const hasCustomerJoined = async (task: Flex.ITask) => {
     for (const p of customers) {
       try {
         if (!p.callSid) {
-          logger.warn('[hang-up-by] Unable to get participant from conference, missing participant sid');
+          console.log('Unable to get participant from conference, missing participant sid');
           continue;
         }
 
@@ -128,8 +127,8 @@ export const hasCustomerJoined = async (task: Flex.ITask) => {
           joinedCustomers = true;
           break;
         }
-      } catch (error: any) {
-        logger.warn('[hang-up-by] Unable to get participant from conference, it probably ended', error);
+      } catch (error) {
+        console.log('Unable to get participant from conference, it probably ended', error);
       }
     }
 
@@ -150,7 +149,7 @@ export const setHangUpBy = (reservationSid: string, value: HangUpBy) => {
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(newValue));
-  logger.debug(`[hang-up-by] Set ${STORAGE_KEY} for ${reservationSid} to ${value}`, newValue);
+  console.log(`Set ${STORAGE_KEY} for ${reservationSid} to ${value}`, newValue);
 };
 
 export const setHangUpByAttribute = async (
@@ -187,10 +186,10 @@ export const setHangUpByAttribute = async (
 
   try {
     await TaskRouterService.updateTaskAttributes(taskSid, newAttributes);
-  } catch (error: any) {
-    logger.error(`[hang-up-by] Failed to set hang_up_by attribute for ${taskSid} to ${value}`, error);
+  } catch (error) {
+    console.log(`Failed to set hang_up_by attribute for ${taskSid} to ${value}`, error);
   }
-  logger.debug(`[hang-up-by] Set hang_up_by attribute for ${taskSid} to ${value}`, newAttributes);
+  console.log(`Set hang_up_by attribute for ${taskSid} to ${value}`, newAttributes);
 };
 
 export const clearHangUpBy = (reservationSid: string) => {
@@ -199,6 +198,6 @@ export const clearHangUpBy = (reservationSid: string) => {
   if (storage[reservationSid]) {
     delete storage[reservationSid];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storage));
-    logger.debug(`[hang-up-by] Removed ${STORAGE_KEY} value for ${reservationSid}`);
+    console.log(`Removed ${STORAGE_KEY} value for ${reservationSid}`);
   }
 };
